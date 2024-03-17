@@ -1,0 +1,25 @@
+import open3d as o3d
+import numpy as np
+
+def clean_up_point_cloud(pcd, nb_points=10000): # Max number of points
+    # Remove outliers, statistical outlier removal
+    clean_pcd, ind = pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
+    
+    # Optional: Use the indices to remove outliers, if needed for further processing
+    # clean_pcd = pcd.select_by_index(ind)
+
+    # Normalize point count
+    # Check if the number of points is greater than the target number of points
+    if np.asarray(clean_pcd.points).shape[0] > nb_points:
+        # Calculate downsampling factor
+        every_nth_point = int(np.ceil(np.asarray(clean_pcd.points).shape[0] / nb_points))
+        # Uniformly downsample the point cloud
+        downsampled_indices = np.arange(0, np.asarray(clean_pcd.points).shape[0], every_nth_point)
+        clean_pcd = clean_pcd.select_by_index(downsampled_indices)
+    
+    return clean_pcd
+
+# Example usage
+pcd = o3d.io.read_point_cloud("path/to/your/pointcloud.ply")  # Load your point cloud
+clean_pcd = clean_up_point_cloud(pcd)
+o3d.visualization.draw_geometries([clean_pcd])  # Visualize the cleaned point cloud
